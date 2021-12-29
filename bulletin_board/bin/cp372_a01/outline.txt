@@ -1,0 +1,144 @@
+Server Rough Outline (of what to do): 
+Taken from https://docs.oracle.com/javase/tutorial/networking/sockets/clientServer.html
+
+-	Listen to the port
+-	Establish connections
+-	Read from and write to the socket
+-	Object to implement the protocol - the language that the client and server have agreed to use to communicate 
+
+-	Create a new ServerSocket object to listen on a specific port. When running the server, choose a port that is not already dedicated to some other service. 
+-	Create the ServerSocket object like this: 
+
+		Ex: ServerSocket serverSocket = new ServerSocket(portNumber); 
+		
+- 	ServerSocket - a java.net class that provides a system-independent implementation of the server side of a client/server socket connection. 
+				 - If the server successfully binds to its port, then the ServerSocket object is successfully created and the server tries to accept a connection from a client 
+				 
+		Ex: clientSocket = serverSocket.accept(); 
+		
+			- .accept() method waits until a client starts up and requests a connection on the host and port of the server
+			- server is running on the port number. When a connection is requested and successfully established, the accept() method returns a new Socket object (which is bound to the same local port) and has its remote address and remote port set to that of the client. 
+			- The server can communicate with the client over this new Socket and continue to listen for client connection requests on the original ServerSocket. 
+			
+	
+			- After the server establishes a connection with a client, it communicates with the client using this code: 
+			
+			try (
+			    // ...
+			    PrintWriter out =
+			        new PrintWriter(clientSocket.getOutputStream(), true);
+			    BufferedReader in = new BufferedReader(
+			        new InputStreamReader(clientSocket.getInputStream()));
+			) {
+			    String inputLine, outputLine;
+			            
+			    // Initiate conversation with client
+			    KnockKnockProtocol kkp = new KnockKnockProtocol();
+			    outputLine = kkp.processInput(null);
+			    out.println(outputLine);
+			
+			    while ((inputLine = in.readLine()) != null) {
+			        outputLine = kkp.processInput(inputLine);
+			        out.println(outputLine);
+			        if (outputLine.equals("Bye."))
+			            break;
+			    }
+			
+					What it does is: 
+								1. Get the socket's input and output streem and open readers and writers on them
+								2. Initiate communication with the client by writing to the socket
+								3. Communicate with the client by reading from and writing to the socket (while loop) 
+								
+								
+			- After the KnockKnockProtocol is created, the code calls KnockKnockProtocol's processInput method to get the first message that the server sends to the client. Next, the server writes the information to the PrintWriter "out" connected to the client socket, thereby sending the message to the client. 
+			- While loop: As long as the client and server still have something to say to each other, the server reads from and writes to the socket, sending messages back and forth between the client and the server. 
+			- While loop iterates on a read from the input stream. 
+				- the readLine method waits until the client responds by writing something to its output stream (the server's input stream). 
+				
+			- The server sends stuff to the client via the output stream connected to the socket, using a call to println. Loop may quit on an indication from the client from the read line. 
+			
+			- 
+			
+Client Rough Outline: 
+
+			- Speaks to the server
+			- When you start the client program, the server should already be running and listening to the port, waiting for a client to request a connection
+			- The first thing the client program does is to open a socket that is connected to the server running on the specified host and port .
+				Ex: 
+				
+					String hostname = args[0]; 
+					int portNumber = Integer.parseInt(args[1]); 
+					
+					try (
+						Socket kkSocket = new Socket(hostname, portNumber); 
+						PrintWriter out = new PrintWriter(kkSocket.getOutputStream(), true); 
+						BufferedReader in = new BufferedReader(new InputStreamReader(kkSocket.getInputStream())); 
+						
+						)
+						
+			- Creating the socket with a remote port number - the number of a port on the server computer - and is the port to which the server is listening. 
+			- The client's socket is bound to any available local port - a port on the client computer. The socket is bound to a local port number so that here the server's socket and the client's socket are connected. 
+			
+			- While loop - implements the communication between the client and the server. 
+				- The server speaks first, so the client must listen first. 
+				- The client does this by reading from the input stream attached to the socket. 
+				
+				- The client displays the text to the standard output and then reads the response from the user, who types into the standard input. After the user types a carriage return, the client sends the text to the server through the output stream attached to the socket. 
+				
+				Ex: while ((fromServer = in.readLine()) != NULL) {
+						System.out.println("Server: " + fromServer); 
+						if (fromServer.equals("Bye.")) 
+							break; 
+						
+						fromUser = stdIn.readLine(); 
+						if (fromUser != NULL) {
+							System.out.println("Client: " + fromUser); 
+							out.println(fromUser);
+						}
+					}
+					
+					
+				- If you created the socket in a try-with-resources statement, the client will automatically close its input and output streams. 
+				
+		1. Open a socket 
+		2. Open an input stream and output stream to the socket. 
+		3. Read from and write to the stream according to the server's protocol 
+		4. Close the streams. 
+		5. Close the socket. 		
+				
+Running the programs: 
+
+	- Start the server progam first 
+	- Specify as a command-line argument the port number on which the server program listens
+					
+					
+	- From single connection request to multiple client requests...
+	- Multiple client requests can come into the same port and, consequently, into the same ServerSocket. Client connection requests are queued at the port, so the server must accept the connections sequentially. However, the server can service them simultaneously through the use of threads - one thread per each client connection. 
+	
+		Ex: 
+			while (true) {
+				//accept a connection 
+				//create a thread to deal with the client
+			} 
+			
+		The thread reads from and writes to the client connection as necessary 
+					
+	- A multiple client server loops forever (runs on an infinite loop listening on specified port number), listening for client connection requests on a ServerSocket. 
+	- When a request comes in, the server accepts the connection, creates a new Thread object to process it, hands it the socket returned from accept, and starts the thread. Then the server goes back to listening for connection requests. The Thread object communicates to the client by reading from and writing to the socket. 
+	
+	- To test a multiple client server, run the server and then run several clients in succession. 
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+			
+			
+
+			

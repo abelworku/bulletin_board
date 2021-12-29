@@ -1,5 +1,5 @@
 # bulletin_board
-An object-oriented client-server Java application, where users can store, access, and modify notes on an active server simultaneously, simulating a bulletin board. 
+An object-oriented client-server application, developed using Java, where users can store, access, and modify notes on an active server simultaneously, simulating a bulletin board. 
 
 # Overview
 - This Java program contains a server, and clients (one or multiple) that connect to the server. The client can interact in the server in many ways that mimic a bulletin board, with actions such as posting, retrieving, pinning, and clearing the board of notes.
